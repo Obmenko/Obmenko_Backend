@@ -3,6 +3,9 @@ import express from 'express';
 import requestRouter from './controllers/request';
 import PROJECT_CONFIG from './const/project';
 import cors from 'cors';
+import Telegram from './utils/telegram';
+
+Telegram.init(PROJECT_CONFIG.TELEGRAM_BOT_TOKEN)
 
 const app = express();
 

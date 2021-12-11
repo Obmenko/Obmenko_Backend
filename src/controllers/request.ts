@@ -1,6 +1,7 @@
 import express from "express";
 import { CurrencyDataItemWithWallet } from "../const/currencies";
 import { CourseData } from "../types/exchange";
+import Telegram from "../utils/telegram";
 
 const requestRouter = express.Router();
 
@@ -18,8 +19,11 @@ export type ICreateRequest = {
   course: CourseData
 }
 
-requestRouter.post('/request', (req) => {
-  console.log(req.body)
+
+
+requestRouter.post<any, any, any, ICreateRequest>('/request', (req) => {
+  const data = req.body;
+  Telegram.sendRequestMessage(data)
 });
 
 export default requestRouter;
