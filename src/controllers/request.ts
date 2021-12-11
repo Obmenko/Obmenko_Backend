@@ -16,14 +16,23 @@ export type ICreateRequest = {
   email: string;
   telegram: string;
   fullname: string;
-  course: CourseData
+  course: CourseData,
 }
 
-
-
-requestRouter.post<any, any, any, ICreateRequest>('/request', (req) => {
+requestRouter.post<any, any, any, ICreateRequest>('/request', (req, res) => {
   const data = req.body;
-  Telegram.sendRequestMessage(data)
+  try {
+    Telegram.sendRequestMessage(data)
+  } catch(e) {
+    res.send(400).send({
+      success: false,
+      message: e
+    })
+  }
+  res.status(200).send({
+    success: true,
+    message: 'OK'
+  })
 });
 
 export default requestRouter;
