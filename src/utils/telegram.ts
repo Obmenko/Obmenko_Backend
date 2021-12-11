@@ -12,8 +12,7 @@ class Telegram {
 
   static sendRequestMessage(data: ICreateRequest) {
     const text = `Exchange\n\nFrom: ${data.from} ${data.fromSelected.unit}\nTo: ${data.to} ${data.toSelected.unit}\nCourse: 1${data.fromSelected.unit} = ${data.course.rate} ${data.toSelected.unit} (counted with fee ${data.course.feePercent}%)\n\n\nContacts: \n\nFullname: ${data.fullname}\nEmail: ${data.email}\nPhone: ${data.phone}\n${data.toSelected.isBtc ? `Wallet: ${data.wallet}` : `Card: ${data.card}`}\nTelegram: ${data.telegram ? `${data.telegram[0] === '@' ? '' : '@'}${data.telegram}` : `N/A`}`
-    console.log(PROJECT_CONFIG.TELEGRAM_CHAT_ID)
-    this.bot.telegram.sendMessage(PROJECT_CONFIG.TELEGRAM_CHAT_ID, text)
+    return this.bot.telegram.sendMessage(PROJECT_CONFIG.TELEGRAM_CHAT_ID, text)
   } 
 }
 

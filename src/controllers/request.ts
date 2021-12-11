@@ -19,10 +19,10 @@ export type ICreateRequest = {
   course: CourseData,
 }
 
-requestRouter.post<any, any, any, ICreateRequest>('/request', (req, res) => {
+requestRouter.post<any, any, any, ICreateRequest>('/request', async (req, res) => {
   const data = req.body;
   try {
-    Telegram.sendRequestMessage(data)
+    await Telegram.sendRequestMessage(data)
   } catch(e) {
     res.send(400).send({
       success: false,
