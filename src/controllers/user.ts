@@ -3,7 +3,7 @@ import express from 'express';
 import { ObjectId } from 'mongodb';
 import PROJECT_CONFIG from '../const/project';
 import RequestService from '../models/request';
-import { ICreateUser, IUserAuth, UserService, UserType } from '../models/user';
+import { ICreateUser, IUpdateUser, IUserAuth, UserService, UserType } from '../models/user';
 import { parseRequestToken } from '../utils/http';
 import crypto from 'crypto';
 
@@ -13,21 +13,35 @@ const userRouter = express.Router();
 
 userRouter.get('/user', async (req, res) => {
   const token = parseRequestToken(req)
-
   const user = await UserService.getByToken(token)
   if (!user) throw new Error()
 
-  res.status(200).send(user)
+  res.status(200).send(user.getView())
 });
 
 userRouter.post<any, any, any, ICreateUser>('/user', async (req, res) => {
-  const userId = await UserService.create(req.body)
+  if (await UserService.getByEmail(req.body.email)) {
+    res.status(302).send('Error')
+    return;
+  }
 
-  if (userId) res.status(200).send(userId)
+  const userId = await UserService.create(req.body)
+  if (!userId) {
+    res.status(302).send('Error');
+    return;
+  }
+
+  const user = await UserService.getById(userId)
+  if (!user) {
+    res.status(302).send('Error')
+    return;
+  }
+
+  if (userId) res.status(200).send(user.getView())
   else res.status(400).send('Error')
 });
 
-userRouter.get<any, any, any, IUserAuth>('/user/auth', async (req, res) => {
+userRouter.post<any, any, any, IUserAuth>('/user/auth', async (req, res) => {
   const user = await UserService.getByAuth(req.body)
 
   if (!user) res.status(302).send('Error')
@@ -57,13 +71,22 @@ userRouter.delete('/user', async (req, res) => {
   }
 });
 
-userRouter.patch<any, any, any, IUserAuth>('/user', async (req, res) => {
-  const id = req.params.id;
-  
-  const user = await UserService.getById(id)
+userRouter.put<any, any, any, IUpdateUser>('/user', async (req, res) => {
+  const token = parseRequestToken(req)
 
-  if (!user) res.status(400).send('User not found')
-  else res.status(200).send('OK')
+  try {
+    const user = await UserService.getByToken(token)
+    if (!user) throw new Error()
+
+    const id = user.data._id?.toHexString()
+    if (!id) throw new Error()
+
+    await UserService.update(id, req.body)
+
+    res.status(200).send('OK')
+  } catch (e) {
+    res.status(500).send('Error')
+  }
 });
 
 userRouter.post('/user/reset', async (req, res) => {
@@ -107,7 +130,7 @@ userRouter.post('/user/reset', async (req, res) => {
   }  
 });
 
-userRouter.patch('/api/auth/reset/:token', async (req, res) => {
+userRouter.put('/api/auth/reset/:token', async (req, res) => {
   const resetPasswordToken = req.params.token;
   const user = await UserService.getByResetPasswordToken(resetPasswordToken)
   const id = user?.data._id?.toHexString()
@@ -118,3 +141,5 @@ userRouter.patch('/api/auth/reset/:token', async (req, res) => {
 
   await UserService.updatePassword(id, req.body.password)
 });
+
+export default userRouter

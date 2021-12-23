@@ -5,8 +5,10 @@ import PROJECT_CONFIG from './const/project';
 import cors from 'cors';
 import Telegram from './utils/telegram';
 import bodyParser from 'body-parser';
-import { MongoClient } from 'mongodb';
-import { DBClient } from './utils/db';
+import { Database } from './utils/db';
+import userRouter from './controllers/user';
+import RequestService from './models/request';
+import { UserService } from './models/user';
 
 Telegram.init(PROJECT_CONFIG.TELEGRAM_BOT_TOKEN)
 
@@ -16,11 +18,12 @@ app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json())
 
-app.use('/api/tg', requestRouter);
-require('./app/routes')(app);
-
 const init = async () => {
-  await DBClient.init(PROJECT_CONFIG.MONGODB_URL)
+  await Database.init(PROJECT_CONFIG.MONGODB_URL)
+  RequestService.init()
+  app.use('/api', requestRouter);
+  UserService.init()
+  app.use('/api', userRouter)
   app.listen(PROJECT_CONFIG.PORT, () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${PROJECT_CONFIG.PORT}`);
   });

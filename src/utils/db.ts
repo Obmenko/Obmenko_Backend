@@ -1,22 +1,16 @@
 import { Db, MongoClient } from "mongodb";
+import PROJECT_CONFIG from "../const/project";
 
-class DB {
-  _db: Db
+export class Database {
+  static client: MongoClient
 
-  init(connectionString: string) {
-    return new Promise((resolve, reject) => {
-      MongoClient.connect(connectionString, (err, database) => {
-        if (err) return reject(err)
-        this._db = database as any as Db;
-        resolve(database)
-      })
-    })
+  static async init(connectionString: string) {
+    const database = await MongoClient.connect(connectionString)
+    console.log('Database inited');
+    this.client = database as any as MongoClient;
   }
 
-  getDatabase(): Db {
-    return this._db
+  static getDatabase(): Db {
+    return this.client.db()
   }
 }
-
-export const DBClient = new DB()
-export const db = DBClient.getDatabase()

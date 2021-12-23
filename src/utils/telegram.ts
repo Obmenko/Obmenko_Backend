@@ -1,6 +1,7 @@
 import {Telegraf, Telegraf as TelegrafClass} from 'telegraf'
 import PROJECT_CONFIG from '../const/project';
-import { ICreateRequest } from '../controllers/request';
+import { ICreateRequest, RequestType } from '../models/request';
+import { User } from '../models/user';
 
 class Telegram {
   static bot: Telegraf;
@@ -10,8 +11,8 @@ class Telegram {
     this.bot = new TelegrafClass(botToken)
   }
 
-  static sendRequestMessage(data: ICreateRequest) {
-    const text = `Exchange\n\nFrom: ${data.from} ${data.fromSelected.unit}\nTo: ${data.to} ${data.toSelected.unit}\nCourse: 1${data.fromSelected.unit} = ${data.course.rate} ${data.toSelected.unit} (counted with fee ${data.course.feePercent}%)\n\n\nContacts: \n\nFullname: ${data.fullname}\nEmail: ${data.email}\nPhone: ${data.phone}\n${data.toSelected.isBtc ? `Wallet: ${data.wallet}` : `Card: ${data.card}`}\nTelegram: ${data.telegram ? `${data.telegram[0] === '@' ? '' : '@'}${data.telegram}` : `N/A`}`
+  static sendRequestMessage(data: RequestType, user: User) {
+    const text = `Exchange #${data._id}\n\nFrom: ${data.countFrom} ${data.coinFrom}\nTo: ${data.countTo} ${data.coinTo}\nCourse: 1${data.coinFrom} = ${+data.countTo / +data.countFrom} ${data.coinTo}\n\n\nContacts: \n\nFullname: ${user.data.fullname}\nEmail: ${user.data.email}\nPhone: ${user.data.phone}\nWallet/card: ${data.card || data.wallet}\nTelegram: ${user.data.telegram ? `${user.data.telegram[0] === '@' ? '' : '@'}${user.data.telegram}` : `N/A`}`
     return this.bot.telegram.sendMessage(PROJECT_CONFIG.TELEGRAM_CHAT_ID, text)
   } 
 }

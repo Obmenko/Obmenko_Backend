@@ -1,6 +1,8 @@
 import { ObjectId, ObjectID } from "bson";
-import { db } from "../utils/db";
+import { Database } from "../utils/db";
 import crypto from 'crypto';
+import { Collection } from "mongodb";
+import _ from 'lodash';
 
 export type UserType = {
   _id?: ObjectID,
@@ -10,9 +12,11 @@ export type UserType = {
   username: string,
   fullname?: string,
   telegram?: string,
+  phone?: string,
   resetPasswordToken?: string,
   resetPasswordExpires?: number
 }
+export type UserView = Omit<UserType, "password" | "resetPasswordToken" | "resetPasswordExpires">
 
 export type ICreateUser = Pick<UserType, 'email' | 'password' | 'username'>
 export type IUpdateUser = Partial<Omit<UserType, "token" | 'password' | "_id">>
@@ -21,16 +25,28 @@ export type IUserAuth = {
   password: string
 }
 
-export class User {
-  static collection = db.collection<UserType>('users')
 
-  constructor(public data: UserType) { }
-} 
+export class User {
+  constructor(public data: UserType) {}
+
+  getView(): UserView {
+    const excludedList = ['resetPasswordExpires', 'resetPasswordToken', 'password']
+
+    const buffer = _.omit(this.data, excludedList) as any;
+
+    buffer._id = buffer._id.toHexString();
+
+    return buffer as UserView
+  }
+}
 
 export class UserService {
-  static collection = db.collection<UserType>('users')
+  static collection: Collection<UserType>
 
-  constructor(public data: UserType) {}
+  static async init() {
+    const db = Database.getDatabase()
+    this.collection = db.collection<UserType>('users')
+  }
 
   static async getById(id: string): Promise<User | undefined> {
     const user = await this.collection.findOne({
@@ -41,7 +57,16 @@ export class UserService {
   }
 
   static async getByAuth(data: IUserAuth): Promise<User | undefined> {
-    const user = await this.collection.findOne(data)
+    const user = await this.collection.findOne({
+      $and: [
+        {
+          email: data.email
+        },
+        {
+          password: data.password
+        }
+      ]
+    })
 
     return user ? new User(user) : undefined;
   }
@@ -81,10 +106,8 @@ export class UserService {
   }
 
   static async create(data: ICreateUser): Promise<string | undefined> {
-    let token = '';
-    crypto.randomBytes(48, function (_err, buffer) {
-      token = buffer.toString('hex');
-    });
+    const token = crypto.randomBytes(48).toString('hex');
+    if (!token) return undefined;
     const userData: UserType = {
       email: data.email,
       password: data.password,
@@ -108,9 +131,11 @@ export class UserService {
   static async update(id: string, data: IUpdateUser): Promise<string | undefined> {
     const user = await this.collection.updateOne({
       _id: new ObjectId(id)
-    }, data);
+    }, {
+      $set: data
+    });
 
-    return user.upsertedId.toHexString() || undefined
+    return user.upsertedId?.toHexString() || undefined
   }
 
   static async updatePassword(id: string, newPassword: string): Promise<string | undefined> {

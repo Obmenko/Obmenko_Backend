@@ -1,13 +1,15 @@
 import { ObjectID } from "bson";
-import { ObjectId } from "mongodb";
+import { Collection, ObjectId } from "mongodb";
 import { CurrencyDataItemWithWallet } from "../const/currencies";
-import { db } from "../utils/db";
 import crypto from 'crypto'
 import { CurrencyUnitEnum } from "../types/exchange";
+import _ from "lodash";
+import { Database } from "../utils/db";
 
 export enum RequestStatusEnum {
   NEW = 'new',
   PAYED = 'payed',
+  PROCESSING = 'processing',
   CANCELLED = 'cancelled',
   REJECTED = 'rejected'
 }
@@ -24,6 +26,10 @@ export type RequestType = {
   card?: string,
   createdAt?: number;
 }
+export interface RequestView extends Omit<RequestType, '_id' | 'userId'> {
+  _id: string,
+  userId: string
+};
 
 export interface ICreateRequest extends Omit<RequestType, '_id' | 'status' | 'createdAt' | 'coinFrom' | 'coinTo'> {
   coinTo: CurrencyDataItemWithWallet,
@@ -32,12 +38,29 @@ export interface ICreateRequest extends Omit<RequestType, '_id' | 'status' | 'cr
 export type IUpdateRequest = Partial<Pick<RequestType, 'status'>>
 
 export class Request {
-  constructor(public data: RequestType) {}
+  constructor(private data: RequestType) {}
+
+  public getView(): RequestView {
+    const excludedList: never[] = []
+
+    const buffer = _.omit(this.data, excludedList) as any;
+
+    buffer._id = buffer._id.toHexString();
+    buffer.userId = buffer.userId.toHexString();
+    return buffer as RequestView
+  }
+
+  public getData() {
+    return this.data
+  }
 }
 
 export default class RequestService {
-  static collection = db.collection<RequestType>('requests')
+  static collection: Collection<RequestType>
 
+  static async init() {
+    this.collection = Database.getDatabase().collection<RequestType>('requests')
+  }
 
   static async getById(id: string): Promise<Request | undefined> {
     const request = await this.collection.findOne({
@@ -50,7 +73,7 @@ export default class RequestService {
   static async get(filter: Partial<Omit<RequestType, '_id'>>) {
     const requestList = await this.collection.find({
       ...filter,
-    })
+    }).toArray()
 
     return requestList.map(request => new Request(request));
   }
@@ -90,7 +113,9 @@ export default class RequestService {
   static async update(id: string, data: IUpdateRequest): Promise<string | undefined> {
     const request = await this.collection.updateOne({
       _id: new ObjectId(id)
-    }, data);
+    }, {
+      $set: data
+    });
 
     return request.upsertedId.toHexString() || undefined
   }
