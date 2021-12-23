@@ -20,7 +20,7 @@ export type RequestType = {
   coinTo: CurrencyUnitEnum,
   countTo: string | number,
   countFrom: string | number
-  userId: ObjectID;
+  userId?: ObjectID;
   status: RequestStatusEnum,
   wallet?: string,
   card?: string,
@@ -33,7 +33,11 @@ export interface RequestView extends Omit<RequestType, '_id' | 'userId'> {
 
 export interface ICreateRequest extends Omit<RequestType, '_id' | 'status' | 'createdAt' | 'coinFrom' | 'coinTo'> {
   coinTo: CurrencyDataItemWithWallet,
-  coinFrom: CurrencyDataItemWithWallet
+  coinFrom: CurrencyDataItemWithWallet,
+  email?: string,
+  phone?: string | number,
+  wallet?: string,
+  card?: string
 }
 export type IUpdateRequest = Partial<Pick<RequestType, 'status'>>
 

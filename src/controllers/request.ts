@@ -30,17 +30,16 @@ requestRouter.get('/request', async (req, res) => {
 requestRouter.post<any, any, any, ICreateRequest>('/request', async (req, res) => {
   const token = parseRequestToken(req);
   const user = await UserService.getByToken(token)
-  if (!user) {
-    res.status(404).send('User not found')
-    return
-  }
 
   const requestData: ICreateRequest = {
-    userId: new ObjectId(user?.data._id),
     coinFrom: req.body.coinFrom,
     coinTo: req.body.coinTo,
     countFrom: req.body.countFrom,
     countTo: req.body.countTo,
+  }
+
+  if (user?.data._id) {
+    requestData.userId = new ObjectId(user?.data._id)
   }
 
   if (req.body.coinTo.isBtc) requestData.wallet = req.body.wallet
@@ -51,15 +50,30 @@ requestRouter.post<any, any, any, ICreateRequest>('/request', async (req, res) =
   const request = await RequestService.getById(requestId);
   if (!request) return;
 
+  const requestModel = request.getData();
+
   try {
-    await Telegram.sendRequestMessage(request.getData(), user)
+    await Telegram.sendRequestMessage({
+      _id: requestId,
+      coinFrom: requestModel.coinFrom,
+      coinTo: requestModel.coinTo,
+      countTo: requestModel.countTo,
+      countFrom: requestModel.countFrom,
+      createdAt: requestModel.createdAt,
+      email: user?.data.email || req.body.email || '',
+      phone: user?.data.phone || req.body.phone || '',
+      wallet: requestModel.wallet,
+      card: requestModel.card,
+    })
     res.status(200).send({
       _id: requestId
     })
     return;
   } catch (e) {
-    res.status(200).send({
+    res.status(200).send(requestId ? {
       _id: requestId
+    } : {
+      error: e
     })
   }
 });
