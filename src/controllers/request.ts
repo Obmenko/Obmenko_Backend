@@ -103,26 +103,33 @@ requestRouter.delete('/request/:id', async (req, res) => {
 
 requestRouter.put<any, any, any, IUpdateRequest>('/request/:id', async (req, res) => {
   const token = parseRequestToken(req);
-  const user = await UserService.getByToken(token)
-  if (!user) res.status(404).send('User not found')
+  try {
+    const user = await UserService.getByToken(token)
+    if (!user) res.status(404).send('User not found')
 
-  const id = req.params.id;
-  const data = req.body;
-  const request = await RequestService.getById(id)
-  if (!request) return;
-  const requestData = request?.getData()
+    const id = req.params.id;
+    const data = req.body;
+    const request = await RequestService.getById(id)
+    if (!request) {
+      res.status(404).send('Request not found')
+      return;
+    }
+    const requestData = request?.getData()
 
-  if (
-    (requestData.status !== RequestStatusEnum.CANCELLED) ||
-    ((user?.data._id === requestData.userId))
-  ) {
-    await RequestService.update(id, data)
-    res.status(200).send({
-      _id: id
-    })
-  }
-  else {
-    res.send({ 'error': 'You can not do it' });
+    if (
+      (requestData.status !== RequestStatusEnum.CANCELLED) ||
+      ((user?.data._id === requestData.userId))
+    ) {
+      await RequestService.update(id, data)
+      res.status(200).send({
+        _id: id
+      })
+    }
+    else {
+      res.send({ 'error': 'You can not do it' });
+    }
+  } catch(e) {
+    res.status(404).send(e)
   }
 });
 
