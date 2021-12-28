@@ -28,7 +28,9 @@ class Telegram {
 
   static sendRequestMessage(data: ITelegramRequest) {
     const text = `Exchange #${data._id}\n\nFrom: ${data.countFrom} ${data.coinFrom}\nTo: ${data.countTo} ${data.coinTo}\nCourse: 1${data.coinFrom} = ${+data.countTo / +data.countFrom} ${data.coinTo}\n\n\nContacts: \n\nEmail: ${data.email}\nPhone: ${data.phone}\nWallet/card: ${data.card || data.wallet}`
-    return this.bot.telegram.sendMessage(PROJECT_CONFIG.TELEGRAM_CHAT_ID, text)
+
+    console.log(text);
+    // return this.bot.telegram.sendMessage(PROJECT_CONFIG.TELEGRAM_CHAT_ID, text)
   } 
 }
 

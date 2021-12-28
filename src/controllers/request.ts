@@ -36,6 +36,8 @@ requestRouter.post<any, any, any, ICreateRequest>('/request', async (req, res) =
     coinTo: req.body.coinTo,
     countFrom: req.body.countFrom,
     countTo: req.body.countTo,
+    card: req.body.card,
+    wallet: req.body.wallet,
   }
 
   if (user?.data._id) {
@@ -55,15 +57,15 @@ requestRouter.post<any, any, any, ICreateRequest>('/request', async (req, res) =
   try {
     await Telegram.sendRequestMessage({
       _id: requestId,
-      coinFrom: requestModel.coinFrom,
-      coinTo: requestModel.coinTo,
-      countTo: requestModel.countTo,
-      countFrom: requestModel.countFrom,
+      coinFrom: requestModel.coinFrom || requestData.coinFrom,
+      coinTo: requestModel.coinTo || requestData.coinTo,
+      countTo: requestModel.countTo || requestData.countTo,
+      countFrom: requestModel.countFrom || requestData.countFrom,
       createdAt: requestModel.createdAt,
       email: user?.data.email || req.body.email || '',
       phone: user?.data.phone || req.body.phone || '',
-      wallet: requestModel.wallet,
-      card: requestModel.card,
+      wallet: requestModel.wallet || requestData.wallet,
+      card: requestModel.card || requestData.card,
     })
     res.status(200).send({
       _id: requestId
