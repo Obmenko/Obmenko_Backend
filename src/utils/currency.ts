@@ -21,9 +21,24 @@ class CurrencyConfigGenerator {
   private EXPIRE_TIME = 60 * 1000
 
   constructor() {
-    this.config = JSON.parse(fs.readFileSync(path.join(META_DIR_PATH, 'currency_config.json'), 'utf8'))
-    this.validPairs = JSON.parse(fs.readFileSync(path.join(META_DIR_PATH, 'valid_pairs.json'), 'utf8'))
-    this.invalidPairs = JSON.parse(fs.readFileSync(path.join(META_DIR_PATH, 'invalid_pairs.json'), 'utf8'))
+    if (fs.existsSync(path.join(META_DIR_PATH, 'currency_config.json'))) {
+      this.config = JSON.parse(fs.readFileSync(path.join(META_DIR_PATH, 'currency_config.json'), 'utf8'))
+    } else {
+      this.config = {} as CurrencyConfig
+      this.saveConfig(this.config)
+    }
+    if (fs.existsSync(path.join(META_DIR_PATH, 'valid_pairs.json'))) {
+      this.validPairs = JSON.parse(fs.readFileSync(path.join(META_DIR_PATH, 'valid_pairs.json'), 'utf8'))
+    } else {
+      this.validPairs = {} as Array<[CurrencyUnitEnum, CurrencyUnitEnum]>
+      this.saveValidPairList(this.validPairs)
+    }
+    if (fs.existsSync(path.join(META_DIR_PATH, 'invalid_pairs.json'))) {
+      this.invalidPairs = JSON.parse(fs.readFileSync(path.join(META_DIR_PATH, 'invalid_pairs.json'), 'utf8'))
+    } else {
+      this.invalidPairs = {} as Array<[CurrencyUnitEnum, CurrencyUnitEnum]>
+      this.saveInvalidPairList(this.invalidPairs)
+    }
   }
 
   private async updateConfig() {
