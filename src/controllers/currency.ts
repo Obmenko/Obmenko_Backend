@@ -14,7 +14,7 @@ currencyRouter.get('/currency/:from/:to', async (req, res) => {
 
 
   res.status(200).send({
-    data: currencyConfig.config.data[req.params.from][req.params.to]
+    rate: currencyConfig.config.data[req.params.from][req.params.to]
   })
 });
 
