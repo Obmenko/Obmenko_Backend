@@ -56,7 +56,7 @@ requestRouter.post<any, any, any, ICreateRequest>('/request', async (req, res) =
   const requestModel = request.getData();
 
   try {
-    await Telegram.sendRequestMessage({
+    if (process.env.NODE_ENV !== 'development') await Telegram.sendRequestMessage({
       _id: requestId,
       coinFrom: requestModel.coinFrom || requestData.coinFrom,
       coinTo: requestModel.coinTo || requestData.coinTo,
@@ -108,7 +108,7 @@ requestRouter.put<any, any, any, IUpdateRequest>('/request/:id', async (req, res
   const token = parseRequestToken(req);
   try {
     const user = await UserService.getByToken(token)
-    if (!user) res.status(404).send('User not found')
+    // if (!user) res.status(404).send('User not found')
 
     const id = req.params.id;
     const data = req.body;
@@ -121,7 +121,7 @@ requestRouter.put<any, any, any, IUpdateRequest>('/request/:id', async (req, res
 
     if (
       (requestData.status !== RequestStatusEnum.CANCELLED) ||
-      ((user?.data._id === requestData.userId))
+      (token && (user?.data._id === requestData.userId))
     ) {
       await RequestService.update(id, data)
       res.status(200).send({
