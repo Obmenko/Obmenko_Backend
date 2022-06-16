@@ -18,7 +18,7 @@ class CurrencyConfigGenerator {
   public config: CurrencyConfig
   private validPairs: Array<[CurrencyUnitEnum, CurrencyUnitEnum]> = []
   private invalidPairs: Array<[CurrencyUnitEnum, CurrencyUnitEnum]> = []
-  private EXPIRE_TIME = 20 * 1000
+  private EXPIRE_TIME = 60 * 1000
 
   constructor() {
     this.config = JSON.parse(fs.readFileSync(path.join(META_DIR_PATH, 'currency_config.json'), 'utf8'))
