@@ -115,12 +115,12 @@ export default class RequestService {
 
 
   static async update(id: string, data: IUpdateRequest): Promise<string | undefined> {
-    const request = await this.collection.updateOne({
+    const request = await this.collection.findOneAndUpdate({
       _id: new ObjectId(id)
     }, {
       $set: data
     });
 
-    return request.upsertedId.toHexString() || undefined
+    return id || undefined
   }
 }

@@ -20,9 +20,9 @@ app.use(express.json())
 
 const init = async () => {
   await Database.init(PROJECT_CONFIG.MONGODB_URL)
-  RequestService.init()
+  await RequestService.init()
   app.use('/api', requestRouter);
-  UserService.init()
+  await UserService.init()
   app.use('/api', userRouter)
   app.listen(PROJECT_CONFIG.PORT, () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${PROJECT_CONFIG.PORT}`);
