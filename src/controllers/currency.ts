@@ -13,7 +13,9 @@ currencyRouter.get('/currency/:from/:to', async (req, res) => {
   await currencyConfig.getConfig()
 
 
-  res.status(200).send(currencyConfig.config.data)
+  res.status(200).send({
+    data: currencyConfig.config.data[req.params.from][req.params.to]
+  })
 });
 
 export default currencyRouter
