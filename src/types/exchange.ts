@@ -22,3 +22,8 @@ export type CourseData = {
   rate: number,
   feePercent: number
 }
+
+export type CurrencyPairsConfig = {
+  updatedAt: number
+  data: Record<string, Partial<Record<string, number>>>
+}

@@ -44,7 +44,7 @@ userRouter.post<any, any, any, ICreateUser>('/user', async (req, res) => {
 userRouter.post<any, any, any, IUserAuth>('/user/auth', async (req, res) => {
   const user = await UserService.getByAuth(req.body)
 
-  if (!user) res.status(302).send('Error')
+  if (!user) res.status(404).send('Error')
   else res.status(200).send({
     token: user?.data.token
   })

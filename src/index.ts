@@ -9,6 +9,7 @@ import { Database } from './utils/db';
 import userRouter from './controllers/user';
 import RequestService from './models/request';
 import { UserService } from './models/user';
+import currencyRouter from './controllers/currency';
 
 Telegram.init(PROJECT_CONFIG.TELEGRAM_BOT_TOKEN)
 
@@ -24,6 +25,7 @@ const init = async () => {
   app.use('/api', requestRouter);
   await UserService.init()
   app.use('/api', userRouter)
+  app.use('/api', currencyRouter)
   app.listen(PROJECT_CONFIG.PORT, () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${PROJECT_CONFIG.PORT}`);
   });
